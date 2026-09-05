@@ -6,6 +6,7 @@ const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const wrapAsync = require("./utils/wrapAsync.js");
 
 main()
   .then(() => {
@@ -47,12 +48,13 @@ app.get("/listings/:id", async(req, res) => {
 });
 
 //create route
-app.post("/listings", async(req, res) => {
+app.post("/listings", wrapAsync(async(req, res, next) => {
     //let {title, description, price, image, country, location} = req.body;
     let listing = req.body.listing;
     await new Listing(listing).save();
     res.redirect("/listings");
-});
+})
+);
 
 //edit route
 app.get("/listings/:id/edit", async(req, res) => {
@@ -87,6 +89,10 @@ app.delete("/listings/:id", async(req, res) => {
 //    console.log("sample saved");
 //    res.send("tested successfully");
 // });
+
+app.use((err, req, res, next) => {
+    res.send("something went wrong");
+});
 
 app.listen(8080, () => {
     console.log("Server is listening to port 8080");
